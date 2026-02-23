@@ -1,0 +1,58 @@
+# ──────────────────────────────────────────────────
+#  .gitignore — Brain Tumor XAI MLOps
+# ──────────────────────────────────────────────────
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Virtual environments ──
+venv/
+.venv/
+env/
+ENV/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Jupyter ──
+.ipynb_checkpoints/
+
+# ── Data (tracked by DVC, not Git) ──
+data/processed/
+*.h5
+*.hdf5
+
+# ── Model artefacts ──
+checkpoints/
+*.pth
+*.pt
+*.onnx
+*.torchscript
+
+# ── Outputs ──
+outputs/
+logs/
+
+# ── W&B ──
+wandb/
+
+# ── DVC ──
+*.dvc.lock
+
+# ── Environment ──
+.env
+
+# ── OS ──
+.DS_Store
+Thumbs.db
