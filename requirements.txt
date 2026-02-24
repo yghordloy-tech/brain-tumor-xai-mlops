@@ -1,0 +1,54 @@
+# ============================================================
+#  Brain Tumor MRI Classification — XAI & MLOps Pipeline
+#  Production dependencies
+# ============================================================
+
+# ---------- Deep Learning ----------
+torch>=2.2.0
+torchvision>=0.17.0
+torchmetrics>=1.3.0
+
+# ---------- Explainability (XAI) ----------
+grad-cam>=1.5.0           # GradCAM / GradCAM++ / ScoreCAM
+shap>=0.45.0              # SHAP explanations
+captum>=0.7.0             # PyTorch model interpretability (Integrated Gradients, etc.)
+
+# ---------- Experiment Tracking & MLOps ----------
+wandb>=0.16.0             # Weights & Biases experiment tracking
+dvc[s3]>=3.40.0           # Data Version Control (with optional S3 remote)
+mlflow>=2.10.0            # Model registry & experiment tracking alternative
+
+# ---------- Serving / API ----------
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9   # file-upload support for FastAPI
+
+# ---------- Data & Image Processing ----------
+numpy>=1.26.0
+pandas>=2.2.0
+Pillow>=10.2.0
+albumentations>=1.4.0     # advanced image augmentations
+opencv-python-headless>=4.9.0
+scikit-learn>=1.4.0
+
+# ---------- Visualization ----------
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# ---------- Configuration & Utilities ----------
+pyyaml>=6.0.1
+python-dotenv>=1.0.1
+hydra-core>=1.3.2         # config composition (optional alternative to plain YAML)
+rich>=13.7.0              # pretty CLI logging
+tqdm>=4.66.0
+
+# ---------- Testing & Code Quality ----------
+pytest>=8.0.0
+pytest-cov>=4.1.0
+black>=24.1.0
+ruff>=0.2.0
+mypy>=1.8.0
+pre-commit>=3.6.0
+
+# ---------- Containerisation helpers ----------
+docker>=7.0.0             # Docker SDK (optional, for programmatic image builds)

@@ -1,0 +1,17 @@
+version: '3.8'
+
+# TODO: Implement docker-compose for local development
+# services:
+#   api:
+#     build: .
+#     ports:
+#       - "8000:8000"
+#     volumes:
+#       - ./checkpoints:/app/checkpoints
+#     env_file:
+#       - .env
+#
+#   mlflow:
+#     image: ghcr.io/mlflow/mlflow:latest
+#     ports:
+#       - "5000:5000"

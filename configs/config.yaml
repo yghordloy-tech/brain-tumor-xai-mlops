@@ -1,0 +1,112 @@
+# ==============================================================
+#  Brain Tumor MRI Classification — Master Configuration
+#  All values below are PLACEHOLDERS — tune before training.
+# ==============================================================
+
+project:
+  name: "brain-tumor-xai-mlops"
+  description: "Explainable AI & MLOps pipeline for Brain Tumor MRI Classification"
+  seed: 42
+  device: "auto"                     # auto | cpu | cuda | mps
+
+# -------------------- Paths --------------------
+paths:
+  raw_data_dir: "data/raw/"
+  processed_data_dir: "data/processed/"
+  model_checkpoint_dir: "checkpoints/"
+  logs_dir: "logs/"
+  explanations_dir: "outputs/explanations/"
+  predictions_dir: "outputs/predictions/"
+
+# -------------------- Data --------------------
+data:
+  image_size: 224                    # resize target (H == W)
+  num_classes: 4                     # glioma, meningioma, pituitary, no_tumor
+  class_names:
+    - glioma
+    - meningioma
+    - pituitary
+    - no_tumor
+  train_split: 0.70
+  val_split: 0.15
+  test_split: 0.15
+  num_workers: 4
+  pin_memory: true
+
+# -------------------- Augmentation --------------------
+augmentation:
+  horizontal_flip_prob: 0.5
+  vertical_flip_prob: 0.2
+  rotation_limit: 15                 # degrees
+  brightness_limit: 0.2
+  contrast_limit: 0.2
+  normalize:
+    mean: [0.485, 0.456, 0.406]      # ImageNet defaults
+    std:  [0.229, 0.224, 0.225]
+
+# -------------------- Model --------------------
+model:
+  architecture: "resnet50"           # resnet18 | resnet50 | efficientnet_b0 | vit_b_16
+  pretrained: true
+  freeze_backbone: false
+  dropout: 0.3
+
+# -------------------- Training --------------------
+training:
+  batch_size: 32
+  epochs: 50
+  early_stopping_patience: 7
+  optimizer:
+    name: "adamw"                    # adam | adamw | sgd
+    lr: 1.0e-4
+    weight_decay: 1.0e-4
+  scheduler:
+    name: "cosine_annealing"         # step_lr | cosine_annealing | reduce_on_plateau
+    T_max: 50
+    eta_min: 1.0e-6
+  loss: "cross_entropy"             # cross_entropy | focal_loss | label_smoothing_ce
+  label_smoothing: 0.1
+  gradient_clip_value: 1.0
+  mixed_precision: true              # use torch.amp automatic mixed precision
+
+# -------------------- Explainability (XAI) --------------------
+xai:
+  methods:
+    - "gradcam"
+    - "gradcam++"
+    - "scorecam"
+    - "integrated_gradients"
+    - "shap"
+  gradcam:
+    target_layer: "layer4"           # last conv block for ResNet
+  shap:
+    n_samples: 100
+
+# -------------------- Experiment Tracking --------------------
+wandb:
+  enabled: true
+  project: "brain-tumor-xai"
+  entity: null                       # set your W&B team / username
+  tags:
+    - "baseline"
+  log_images: true                   # log sample predictions each epoch
+  log_model: true                    # upload best checkpoint to W&B Artifacts
+
+# -------------------- DVC --------------------
+dvc:
+  remote: "s3"                       # local | s3 | gcs | azure
+  remote_url: "s3://your-bucket/brain-tumor-data"
+
+# -------------------- API / Serving --------------------
+api:
+  host: "0.0.0.0"
+  port: 8000
+  model_path: "checkpoints/best_model.pth"
+  reload: false
+  cors_origins:
+    - "*"
+
+# -------------------- Logging --------------------
+logging:
+  level: "INFO"                      # DEBUG | INFO | WARNING | ERROR
+  format: "%(asctime)s — %(name)s — %(levelname)s — %(message)s"
