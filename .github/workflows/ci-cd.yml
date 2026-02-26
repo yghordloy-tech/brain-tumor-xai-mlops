@@ -1,0 +1,21 @@
+name: MLOps CI/CD Pipeline
+
+# When should this automation run? 
+# Answer: Every time you push code to the main or master branch.
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    # This tells GitHub to rent a free Linux server in the cloud for you
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Tell the cloud server to download your project files
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Step 2: Run the exact Docker command you just ran locally!
+    - name: Build Docker Container
+      run: docker build -t brain-tumor-api .
