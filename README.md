@@ -10,131 +10,112 @@
 brain-tumor-xai-mlops/
 │
 ├── configs/
-│   └── config.yaml                   # Master hyperparameter & path configuration
+│   └── config.yaml              # Master hyperparameter & path configuration
 │
-├── src/                              # Core library
+├── src/
 │   ├── data/
-│   │   ├── dataset.py                # Custom PyTorch Dataset
-│   │   ├── transforms.py            # Augmentation & normalization pipelines
-│   │   ├── dataloader.py            # DataLoader factory
-│   │   └── preprocessing.py         # Raw-data validation & preprocessing
+│   │   └── loader.py            # DataLoader factory with augmentation & weighted sampling
 │   │
 │   ├── models/
-│   │   ├── classifier.py            # Model factory (ResNet, EfficientNet, ViT)
-│   │   ├── architectures.py         # Custom CNN / attention architectures
-│   │   └── losses.py                # CE, Focal Loss, Label-smoothing CE
+│   │   └── classifier.py        # ResNet50-based model definition & factory
 │   │
-│   ├── training/
-│   │   ├── trainer.py               # Training engine (AMP, grad-clip, logging)
-│   │   ├── callbacks.py             # Early stopping & checkpoint callbacks
-│   │   └── optimizers.py            # Optimizer & LR-scheduler factory
+│   ├── utils/
+│   │   └── explain.py           # Grad-CAM explainability heatmap generation
 │   │
-│   ├── evaluation/
-│   │   ├── evaluator.py             # Test-set inference & metric computation
-│   │   └── report.py               # Report generation (JSON / HTML)
-│   │
-│   ├── explainability/              # XAI methods
-│   │   ├── gradcam.py               # GradCAM / GradCAM++ wrapper
-│   │   ├── shap_explainer.py        # SHAP (DeepExplainer)
-│   │   └── integrated_gradients.py  # Captum Integrated Gradients
-│   │
-│   └── utils/
-│       ├── config.py                # YAML config loader
-│       ├── logger.py                # Structured logger (Rich + W&B)
-│       ├── metrics.py               # Accuracy, F1, AUC helpers
-│       ├── helpers.py               # Seed, device, checkpoint I/O
-│       └── visualization.py         # Plot curves, heatmaps, confusion matrix
+│   └── train.py                 # Training & validation loop with W&B logging
 │
-├── api/                             # FastAPI serving layer
-│   ├── main.py                      # App entry-point & startup
-│   ├── routes.py                    # /predict, /predict/explain, /health
-│   ├── schemas.py                   # Pydantic request / response models
-│   └── inference.py                 # Model loading & prediction service
+├── api/
+│   └── main.py                  # FastAPI inference endpoint
 │
-├── scripts/                         # CLI entry-points
-│   ├── train.py                     # python scripts/train.py --config ...
-│   ├── evaluate.py                  # python scripts/evaluate.py ...
-│   ├── explain.py                   # python scripts/explain.py --image ...
-│   └── export_model.py             # Export to ONNX / TorchScript
-│
-├── notebooks/                       # Jupyter-friendly exploration
-│   ├── 01_eda.py
-│   ├── 02_training_experiments.py
-│   └── 03_xai_visualizations.py
-│
-├── tests/                           # pytest test suite
-│   ├── test_data.py
-│   ├── test_models.py
-│   ├── test_api.py
-│   └── test_explainability.py
-│
-├── data/                            # (git-ignored, DVC-tracked)
+├── data/                        # (git-ignored, DVC-tracked)
 │   ├── raw/
+│   │   ├── Training/            # Class sub-folders (glioma, meningioma, etc.)
+│   │   └── Testing/
 │   └── processed/
 │
-├── checkpoints/                     # (git-ignored) saved model weights
-├── outputs/                         # (git-ignored) explanations, reports
-├── logs/                            # (git-ignored) training logs
+├── models/
+│   └── saved_weights/           # (git-ignored) saved model checkpoints
 │
-├── .env.example                     # Environment variable template
-├── .gitignore
-├── Dockerfile
-├── docker-compose.yml
-├── dvc.yaml                         # DVC pipeline definition
-├── pyproject.toml                   # Tool configuration (pytest, black, ruff, mypy)
-├── requirements.txt                 # Python dependencies
-└── README.md                        # ← You are here
+├── .github/
+│   └── workflows/               # CI/CD pipeline
+│
+├── Dockerfile                   # Production container for the API
+├── requirements.txt             # Full training dependencies
+├── requirements-api.txt         # Lightweight API-only dependencies
+├── pyproject.toml               # Tool configuration
+└── README.md
 ```
+
+## ⚙️ Configuration
+
+All settings are centralized in [`configs/config.yaml`](configs/config.yaml). Every module reads from this single source of truth:
+
+| Section          | Controls                                          |
+|------------------|---------------------------------------------------|
+| `project`        | Name, seed, device (`auto`/`cpu`/`cuda`)          |
+| `paths`          | Data directories, model checkpoint dir, logs      |
+| `data`           | Image size, class names, num workers, pin memory  |
+| `augmentation`   | Flip probabilities, rotation, normalization stats |
+| `model`          | Architecture, pretrained flag, num classes         |
+| `training`       | Batch size, epochs, learning rate, weight decay   |
+| `api`            | Host, port, reload flag                           |
 
 ## 🚀 Quick Start
 
 ```bash
-# 1. Clone & enter the repo
+# Clone & enter the repo
 git clone <repo-url> && cd brain-tumor-xai-mlops
 
-# 2. Create virtual environment
-python -m venv venv && venv\Scripts\activate   # Windows
-# python -m venv venv && source venv/bin/activate  # Linux / macOS
+# Create virtual environment
+python -m venv .venv && .venv\Scripts\activate       # Windows
+# python -m venv .venv && source .venv/bin/activate   # Linux / macOS
 
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. Copy and edit environment variables
-cp .env.example .env
+# Pull data with DVC
+dvc pull
 
-# 5. Initialise DVC
-dvc init
+# Train the model (logs to Weights & Biases)
+python -m src.train
 
-# 6. Train
-python scripts/train.py --config configs/config.yaml
+# Generate Grad-CAM explanation
+python -m src.utils.explain --image path/to/mri.jpg
 
-# 7. Evaluate
-python scripts/evaluate.py --config configs/config.yaml --checkpoint checkpoints/best_model.pth
-
-# 8. Generate explanations
-python scripts/explain.py --config configs/config.yaml --checkpoint checkpoints/best_model.pth --image path/to/mri.jpg
-
-# 9. Launch API
+# Launch the API
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
-## 🧪 Testing
+## 🐳 Docker Deployment
 
 ```bash
-pytest
+docker build -t brain-tumor-api .
+docker run -p 8000:8000 brain-tumor-api
+```
+
+## 🔬 API Endpoints
+
+| Method | Endpoint   | Description                              |
+|--------|------------|------------------------------------------|
+| GET    | `/`        | Health check                             |
+| POST   | `/predict` | Upload an MRI image, receive a diagnosis |
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/predict \
+  -F "file=@path/to/mri_scan.jpg"
 ```
 
 ## 📦 Tech Stack
 
-| Layer              | Tools                                          |
-| ------------------ | ---------------------------------------------- |
-| Deep Learning      | PyTorch, TorchVision, TorchMetrics             |
-| Explainability     | GradCAM, SHAP, Captum (Integrated Gradients)   |
-| Experiment Tracking| Weights & Biases, MLflow                       |
-| Data Versioning    | DVC                                            |
-| API Serving        | FastAPI, Uvicorn                               |
-| Containerisation   | Docker, Docker Compose                         |
-| Code Quality       | Black, Ruff, MyPy, Pre-commit                  |
+| Layer              | Tools                                  |
+|--------------------|----------------------------------------|
+| Deep Learning      | PyTorch, TorchVision                   |
+| Explainability     | Grad-CAM (pytorch-grad-cam)            |
+| Experiment Tracking| Weights & Biases                       |
+| Data Versioning    | DVC                                    |
+| API Serving        | FastAPI, Uvicorn                       |
+| Containerisation   | Docker                                 |
 
 ## 📄 License
 
