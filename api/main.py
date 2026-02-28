@@ -1,9 +1,3 @@
-"""
-api/main.py
-===========
-FastAPI application for Brain Tumor MRI inference.
-"""
-
 import io
 import pathlib
 
@@ -19,7 +13,6 @@ _DEFAULT_CONFIG = _PROJECT_ROOT / "configs" / "config.yaml"
 
 
 def _load_config():
-    """Load and return the YAML configuration dictionary."""
     with open(_DEFAULT_CONFIG, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -63,7 +56,6 @@ def home():
 
 @app.post("/predict")
 async def predict_mri(file: UploadFile = File(...)):
-    """Accepts an uploaded MRI image and returns the AI's diagnosis."""
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 

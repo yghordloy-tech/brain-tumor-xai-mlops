@@ -1,9 +1,3 @@
-"""
-src/utils/explain.py
-====================
-Script to generate Grad-CAM explainability heatmaps for Brain Tumor MRI Classification.
-"""
-
 import argparse
 import pathlib
 
@@ -23,14 +17,12 @@ _DEFAULT_CONFIG = _PROJECT_ROOT / "configs" / "config.yaml"
 
 
 def _load_config(config_path=None):
-    """Load and return the YAML configuration dictionary."""
     path = pathlib.Path(config_path) if config_path else _DEFAULT_CONFIG
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
 def generate_heatmap(image_path: str, config_path=None):
-    """Generate a Grad-CAM heatmap for a given image using the trained model."""
     cfg = _load_config(config_path)
 
     device_cfg = cfg["project"]["device"]

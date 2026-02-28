@@ -1,21 +1,17 @@
-# Ignore Virtual Environment
 .venv/
 venv/
 env/
 
-# Ignore massive data and experiment folders
 data/
 notebooks/
 wandb/
 outputs/
 logs/
 
-# Ignore version control systems
 .git/
 .dvc/
 .dvcignore
 
-# Ignore Python caches
 __pycache__/
 *.pyc
 .pytest_cache/

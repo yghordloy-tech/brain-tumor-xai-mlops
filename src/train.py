@@ -1,9 +1,3 @@
-"""
-src/train.py
-============
-Training script for the Brain Tumor Classification project.
-"""
-
 import os
 import pathlib
 
@@ -21,14 +15,12 @@ _DEFAULT_CONFIG = _PROJECT_ROOT / "configs" / "config.yaml"
 
 
 def load_config(config_path=None):
-    """Load configuration from a YAML file."""
     path = pathlib.Path(config_path) if config_path else _DEFAULT_CONFIG
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
 def _resolve_device(device_cfg: str) -> torch.device:
-    """Resolve the device string from config ('auto', 'cpu', or 'cuda')."""
     if device_cfg == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device_cfg)

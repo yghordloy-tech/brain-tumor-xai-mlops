@@ -1,21 +1,3 @@
-"""
-src/data/loader.py
-==================
-PyTorch data-loading pipeline for the Brain Tumor MRI Classification project.
-
-Uses ``torchvision.datasets.ImageFolder`` – the raw dataset is expected to
-live in class-named sub-folders::
-
-    data/raw/Training/<class_name>/
-    data/raw/Testing/<class_name>/
-
-Applies ``random_split`` to carve out an 85 % Train / 15 % Validation
-partition from the training directory. Trains with augmentation; validation
-and test sets get only resize + normalisation. Builds a
-``WeightedRandomSampler`` for the training ``DataLoader`` to mitigate
-class imbalance.
-"""
-
 from __future__ import annotations
 
 import pathlib
@@ -32,14 +14,12 @@ _DEFAULT_CONFIG = _PROJECT_ROOT / "configs" / "config.yaml"
 
 
 def _load_config(config_path=None):
-    """Load and return the YAML configuration dictionary."""
     path = pathlib.Path(config_path) if config_path else _DEFAULT_CONFIG
     with open(path, "r", encoding="utf-8") as fh:
         return yaml.safe_load(fh)
 
 
 def get_train_transforms(cfg: dict) -> transforms.Compose:
-    """Return the training transform pipeline with data augmentation."""
     image_size = cfg["data"]["image_size"]
     aug = cfg["augmentation"]
     norm = aug["normalize"]
@@ -59,10 +39,6 @@ def get_train_transforms(cfg: dict) -> transforms.Compose:
 
 
 def get_eval_transforms(cfg: dict) -> transforms.Compose:
-    """Return the evaluation transform pipeline (validation & test).
-
-    No augmentation — only resize, tensor conversion, and normalisation.
-    """
     image_size = cfg["data"]["image_size"]
     norm = cfg["augmentation"]["normalize"]
 
@@ -74,14 +50,6 @@ def get_eval_transforms(cfg: dict) -> transforms.Compose:
 
 
 class TransformedSubset(Subset):
-    """A ``Subset`` wrapper that applies its own transform instead of the
-    one baked into the underlying dataset.
-
-    Necessary because ``random_split`` returns plain ``Subset`` objects that
-    delegate ``__getitem__`` to the parent ``ImageFolder``. Different
-    transforms are needed for train vs. validation splits even though they
-    share the same parent dataset.
-    """
 
     def __init__(self, subset: Subset, transform: transforms.Compose) -> None:
         super().__init__(subset.dataset, subset.indices)
@@ -100,11 +68,6 @@ class TransformedSubset(Subset):
 
 
 def _build_weighted_sampler(subset: Subset) -> WeightedRandomSampler:
-    """Create a ``WeightedRandomSampler`` for a given ``Subset``.
-
-    Each sample receives a weight equal to ``1 / class_count`` so that
-    underrepresented classes are up-sampled during training.
-    """
     targets = np.array([subset.dataset.targets[i] for i in subset.indices])
 
     class_counts = np.bincount(targets)
@@ -122,11 +85,6 @@ def _build_weighted_sampler(subset: Subset) -> WeightedRandomSampler:
 def get_dataloaders(
     config_path=None,
 ) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[int, str]]:
-    """Build and return ``(train_loader, val_loader, test_loader, class_to_name)``.
-
-    All hyper-parameters are read from *config_path* (defaults to
-    ``configs/config.yaml`` at the project root).
-    """
     cfg = _load_config(config_path)
 
     batch_size = cfg["training"]["batch_size"]
