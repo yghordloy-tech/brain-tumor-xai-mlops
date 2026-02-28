@@ -1,3 +1,12 @@
+---
+title: Brain Tumor XAI API
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+app_port: 7860
+---
 # 🧠 Brain Tumor MRI Classification — XAI & MLOps Pipeline
 
 > **Explainable AI + production-grade MLOps for 4-class brain tumor classification from MRI scans.**
